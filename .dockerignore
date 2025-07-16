@@ -1,9 +1,0 @@
-**/.dockerignore
-**/.env
-**/.git
-**/.vs
-**/bin
-**/obj
-**/node_modules
-Dockerfile
-docker-compose.yml
