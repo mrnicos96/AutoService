@@ -13,7 +13,7 @@
         // Обязательные свойства
         public DateTime RepairStartDate { get; set; }
         public string CarMake { get; set; }
-        public string CarModel { get; set; } // Добавлено это свойство
+        public string CarModel { get; set; } 
         public string LicensePlate { get; set; }
         public string MasterFullName { get; set; }
         public string ProblemDescription { get; set; }

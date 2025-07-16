@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoService.Application.Interfaces;
 using AutoService.Core.DTOs;
+using AutoService.Core.Entities;
 using AutoService.Core.Interfaces;
 using AutoService.Core.Interfaces.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +34,6 @@ namespace AutoService.Application.Services
                 var repository = scope.ServiceProvider.GetRequiredService<IRepairRepository>();
                 var repairs = await repository.GetInProgressRepairsForMonth(month, year);
 
-                // Вариант 1: Последовательная обработка (надежнее)
                 var repairItems = new List<RepairItemDto>();
                 foreach (var repair in repairs)
                 {
@@ -50,9 +50,6 @@ namespace AutoService.Application.Services
                             .GetMasterWorkloadPercentage(repair.MasterId, month, year)
                     });
                 }
-
-                // Вариант 2: Параллельная обработка (требует thread-safe репозитория)
-                // var repairItems = await Task.WhenAll(repairs.Select(async repair => ...));
 
                 return new ReportDataDto
                 {
@@ -79,5 +76,42 @@ namespace AutoService.Application.Services
                 throw new NotImplementedException();
             }
         }
+
+        //public async Task<ReportDataDto> GenerateVBAReport(int month, int year)
+        //{
+        //    using (var scope = _scopeFactory.CreateScope())
+        //    {
+        //        var repository = scope.ServiceProvider.GetRequiredService<IRepairRepository>();
+        //        var repairs = await repository.GetInProgressRepairsForMonth(month, year);
+
+        //        // Дополнительная сортировка
+        //        var sortedRepairs = repairs
+        //            .OrderBy(r => r.StartDate)
+        //            .ThenBy(r => r.Master.FullName)
+        //            .ThenBy(r => r.Car.Make)
+        //            .ToList();
+
+        //        var reportData = new ReportDataDto
+        //        {
+        //            Month = month,
+        //            Year = year,
+        //            Repairs = sortedRepairs.Select(r => new RepairItemDto
+        //            {
+        //                RepairStartDate = r.StartDate,  
+        //                CarMake = r.Car.Make,
+        //                CarModel = r.Car.Model,
+        //                LicensePlate = r.Car.LicensePlate,
+        //                MasterFullName = r.Master.FullName,
+        //                ProblemDescription = r.ProblemDescription,
+        //                Cost = r.WorkCost,
+        //                MasterWorkloadPercentage = await repository
+        //                    .GetMasterWorkloadPercentage(r.MasterId, month, year)
+        //            }),
+        //            GrandTotalCost = sortedRepairs.Sum(r => r.WorkCost)
+        //        };
+
+        //        return reportData;
+        //    }
+        //}
     }
 }

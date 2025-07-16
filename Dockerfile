@@ -1,9 +1,24 @@
-FROM mcr.microsoft.com/mssql/server:2022-latest
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+WORKDIR /app
+EXPOSE 80
 
-COPY ./migrations/ /migrations/
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+WORKDIR /src
 
-ENV ACCEPT_EULA=Y
-ENV MSSQL_SA_PASSWORD=MyStrong@Passw0rd
-ENV MSSQL_PID=Developer
+# Копируем ТОЛЬКО файлы проектов (это важно для ускорения сборки)
+COPY ["src/API/API.csproj", "src/API/"]
+RUN dotnet restore "src/API/API.csproj"
 
-EXPOSE 1433
+# Копируем ВСЁ остальное (уже после restore)
+COPY . .
+
+WORKDIR "/src/src/API"
+RUN dotnet build "API.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "API.csproj" -c Release -o /app/publish
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "API.dll"]
